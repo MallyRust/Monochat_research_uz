@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const PURPLE = "#7B2BFC";
 const GRAY_BG = "#F2F2F2";
 
-/* ── Menu icons ── */
+/* ── Icons ── */
 const IconTasks = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="#444" stroke="none"><circle cx="12" cy="7" r="4"/><path d="M12 13c-5 0-8 2.5-8 5v1h16v-1c0-2.5-3-5-8-5z"/><circle cx="12" cy="3.5" r="1.5"/></svg>);
 const IconPromo = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="#444" stroke="none"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2" fill="#f3f3f3"/><path d="M14 9l1.5 3 3 .5-2.2 2 .5 3-2.8-1.5-2.8 1.5.5-3-2.2-2 3-.5z" fill="#f3f3f3"/></svg>);
 const IconHeadphones = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/></svg>);
@@ -19,17 +19,38 @@ const TabOrders = ({ color }) => (<svg width="24" height="24" viewBox="0 0 24 24
 const TabMarket = ({ color }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v10c0 3.31 2.69 6 6 6s6-2.69 6-6V4"/></svg>);
 const TabProfile = ({ color }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill={color}><circle cx="12" cy="8" r="5"/><ellipse cx="12" cy="21" rx="9" ry="5"/></svg>);
 
-function BotAvatar() {
-  return (<div className="avatar-bot"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 4v10c0 3.31 2.69 6 6 6s6-2.69 6-6V4h-3v10c0 1.66-1.34 3-3 3s-3-1.34-3-3V4H6z"/></svg></div>);
-}
-function SpecAvatar() {
-  return (<div className="avatar-spec">U</div>);
-}
-function Dots() {
-  return (<div className="dots-wrap">{[0,1,2].map(i=>(<div key={i} className="dot" style={{animationDelay:i*0.16+"s"}}/>))}</div>);
+function BotAvatar() { return (<div className="avatar-bot"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 4v10c0 3.31 2.69 6 6 6s6-2.69 6-6V4h-3v10c0 1.66-1.34 3-3 3s-3-1.34-3-3V4H6z"/></svg></div>); }
+function SpecAvatar() { return (<div className="avatar-spec">U</div>); }
+function Dots() { return (<div className="dots-wrap">{[0,1,2].map(i=>(<div key={i} className="dot" style={{animationDelay:i*0.16+"s"}}/>))}</div>); }
+
+/* ── CSAT Survey ── */
+function CSATSurvey({ onRate }) {
+  return (
+    <div className="msg-in msg-block">
+      <div className="sender">Uzum Tezkor Bot 🤖</div>
+      <div className="msg-row">
+        <BotAvatar/>
+        <div className="msg-content">
+          <div className="bubble-left">
+            Murojaat yopildi, lekin savollaringiz qolsa, har doim yozishingiz mumkin.{"\n"}Qisqa so'rov keladi: iltimos, qo'llab-quvvatlash ishini baholang 💜
+          </div>
+        </div>
+      </div>
+      <div style={{marginTop:8}}>
+        <div style={{fontSize:14,color:"#333",marginBottom:8,textAlign:"center"}}>Qo'llab-quvvatlash sifatini 5 balli shkala bo'yicha baholang:</div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {[1,2,3,4,5].map(n => (
+            <button key={n} onClick={()=>onRate(n)} className="csat-btn">
+              {n} {"⭐".repeat(n)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-/* ── PROFIL ── */
+/* ── PROFILE ── */
 function ProfileScreen({ onSupport }) {
   const items = [
     { icon: <IconTasks/>, label: "Topshiriqlar" },
@@ -58,7 +79,7 @@ function ProfileScreen({ onSupport }) {
           { C: TabRestaurants, label: "Restoranlar" },
           { C: TabCart, label: "Savat" },
           { C: TabOrders, label: "Buyurtmalar" },
-          { C: TabMarket, label: "Market" },
+          { C: TabMarket, label: "Маркет" },
           { C: TabProfile, label: "Profil", active: true },
         ].map(t => {
           const c = t.active ? PURPLE : "#aaa";
@@ -69,19 +90,55 @@ function ProfileScreen({ onSupport }) {
   );
 }
 
+/* ── Smart reply by keywords ── */
+function getSmartReply(msgs) {
+  const ctx = msgs.filter(m => m.r === "user").map(m => m.text.toLowerCase()).join(" ");
+  if (/не приш|не доставл|опаздыва|задерж|долго|ждать|жду|когда приедет|не привез/i.test(ctx))
+    return "Assalomu alaykum! Buyurtmangiz kechikayotganini ko'ryapman. Kuryer bilan bog'landim — tez orada yetib boradi. Kutganingiz uchun uzr!";
+  if (/не то|не тот|перепута|ошиб|другой товар|другое блюдо|не заказывал/i.test(ctx))
+    return "Assalomu alaykum! Noto'g'ri buyurtma kelgani uchun uzr. Almashtirishni rasmiylashtiraman — kuryer to'g'ri buyurtmani olib keladi.";
+  if (/холодн|остыл|тёплый|теплый/i.test(ctx))
+    return "Assalomu alaykum! Tushunaman, bu yoqimsiz. Pul qaytarishni rasmiylashtiryapman. Qayta buyurtma berishingiz mumkin.";
+  if (/разлил|пролил|повреж|сломан|помят|разбит|упаковк/i.test(ctx))
+    return "Assalomu alaykum! Shikastlangan buyurtma uchun uzr. Iltimos, rasm yuboring — qaytarish yoki almashtirishni rasmiylashtiraman.";
+  if (/адрес|изменить адрес|поменять|другой адрес/i.test(ctx))
+    return "Assalomu alaykum! Manzilni o'zgartirishga yordam beraman. Yangi manzilni ayting — kuryer uchun yangilayman.";
+  if (/отмен|cancel|не нужен|отказ/i.test(ctx))
+    return "Assalomu alaykum! Buyurtmani bekor qilyapman. Pul 1-3 ish kunida kartangizga qaytadi.";
+  if (/оплат|деньги|списал|карт|возврат/i.test(ctx))
+    return "Assalomu alaykum! To'lov bo'yicha savolingizni ko'ryapman. Tranzaksiya holatini tekshiraman — odatda qaytarish 3 ish kunigacha davom etadi.";
+  if (/статус|где заказ|отслед/i.test(ctx))
+    return "Assalomu alaykum! Buyurtmangiz yo'lda. Kuryer sizdan taxminan 10 daqiqa uzoqlikda.";
+  if (/промокод|скидк|купон|акци/i.test(ctx))
+    return "Assalomu alaykum! Siz uchun 10% chegirma — promokod UZUM10. 7 kun amal qiladi.";
+  return "Assalomu alaykum! Mening ismim Ulug'bek. Murojaatingiz qabul qilindi, savolni o'rganib chiqyapman. Iltimos, biroz kuting.";
+}
+
 /* ── CHAT ── */
 function ChatScreen({ onBack }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState("empty");
   const [fired, setFired] = useState(false);
+  const [botTyping, setBotTyping] = useState(false);
+  const [specTyping, setSpecTyping] = useState(false);
+  const [showCsat, setShowCsat] = useState(false);
+  const [csatDone, setCsatDone] = useState(false);
   const endRef = useRef(null);
   const rootRef = useRef(null);
+  const csatTimer = useRef(null);
+  const lastMsgTime = useRef(null);
 
   const scroll = useCallback(() => {
     setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
   }, []);
 
+  // Welcome message — immediately
+  useEffect(() => {
+    setMsgs([{ r: "bot", text: "Uzum Tezkor yordami bilan siz aloqadasiz 💜\nYozishni boshlang — yordam beramiz!" }]);
+  }, []);
+
+  // iOS keyboard fix
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -95,18 +152,28 @@ function ChatScreen({ onBack }) {
     vv.addEventListener("resize", sync);
     vv.addEventListener("scroll", sync);
     sync();
-    return () => {
-      vv.removeEventListener("resize", sync);
-      vv.removeEventListener("scroll", sync);
-    };
+    return () => { vv.removeEventListener("resize", sync); vv.removeEventListener("scroll", sync); };
   }, [scroll]);
 
+  // CSAT timer — 3 min after last message
+  const resetCsatTimer = useCallback(() => {
+    if (csatDone) return;
+    if (csatTimer.current) clearTimeout(csatTimer.current);
+    lastMsgTime.current = Date.now();
+    csatTimer.current = setTimeout(() => {
+      setShowCsat(true);
+      scroll();
+    }, 15000); // 15 sec for demo (change to 180000 for 3 min)
+  }, [csatDone, scroll]);
+
+  // First char typed -> bot typing -> buttons
   useEffect(() => {
     if (input.length > 0 && !fired && phase === "empty") {
       setFired(true);
       setPhase("bot_typing");
+      setBotTyping(true);
       scroll();
-      setTimeout(() => { setPhase("buttons"); scroll(); }, 1200);
+      setTimeout(() => { setBotTyping(false); setPhase("buttons"); scroll(); }, 1200);
     }
   }, [input, fired, phase, scroll]);
 
@@ -116,24 +183,33 @@ function ChatScreen({ onBack }) {
     setInput("");
     setMsgs(p => [...p, { r: "user", text }]);
     scroll();
+    resetCsatTimer();
 
-    if (phase === "done" || phase === "replied" || phase === "spec_typing") {
+    // Specialist already connected — show typing then smart reply
+    if (phase === "done" || phase === "replied") {
+      setSpecTyping(true);
+      scroll();
       setTimeout(() => {
-        setMsgs(p => [...p, {
-          r: "spec", name: "Ulug'bek",
-          text: "Ma'lumot uchun rahmat! Murojaatingiz allaqachon ko'rib chiqilmoqda. Savolni o'rganib, tez orada javob beraman.",
-        }]);
+        setSpecTyping(false);
+        setMsgs(p => {
+          const reply = getSmartReply([...p]);
+          return [...p, { r: "spec", name: "Ulug'bek", text: "Ma'lumot uchun rahmat! Murojaatingiz ko'rib chiqilmoqda. Tez orada javob beraman." }];
+        });
         scroll();
-      }, 1500);
+        resetCsatTimer();
+      }, 2500);
       return;
     }
 
+    // First time — call specialist flow
     setFired(true);
     setPhase("picked");
+    setBotTyping(true);
     setTimeout(() => {
+      setBotTyping(false);
       setMsgs(p => [...p, {
         r: "bot",
-        text: "Murojaatingiz uchun rahmat 💜. Iltimos, «Mutaxassisni chaqirish» tugmasini bosing, sizga yordam bera olaylik.",
+        text: "Murojaatingiz uchun rahmat 💜. Iltimos, «Mutaxassisni chaqirish» tugmasini bosing.",
       }]);
       setPhase("call_spec");
       scroll();
@@ -149,11 +225,13 @@ function ChatScreen({ onBack }) {
       { r: "user", text: label },
     ]);
     scroll();
+    setBotTyping(true);
     setTimeout(() => {
+      setBotTyping(false);
       const reps = {
-        "📦 Buyurtma holati": "Buyurtmangiz #4821 yo'lda! Taxminiy yetkazib berish vaqti: bugun soat 18:00 gacha.",
-        "📍 Manzilni o'zgartirish": "Yetkazib berish manzilini o'zgartirish uchun yangi manzilni xabarda yozing.",
-        "⚠️ Buyurtma bilan muammo": "Muammo yuzaga kelgani uchun uzr so'raymiz. Mutaxassis allaqachon ulanmoqda!",
+        "📦 Buyurtma holati": "Buyurtmangiz #4821 yo'lda! Taxminiy yetkazib berish: bugun soat 18:00 gacha.",
+        "📍 Manzilni o'zgartirish": "Manzilni o'zgartirish uchun yangi manzilni xabarda yozing.",
+        "⚠️ Buyurtma bilan muammo": "Muammo yuzaga kelgani uchun uzr. Mutaxassis allaqachon ulanmoqda!",
       };
       setMsgs(p => [...p, { r: "bot", text: reps[label] }]);
       setPhase("replied");
@@ -171,15 +249,30 @@ function ChatScreen({ onBack }) {
 
   const connectSpec = () => {
     setTimeout(() => {
-      setPhase("spec_typing"); scroll();
+      setSpecTyping(true); scroll();
       setTimeout(() => {
+        setSpecTyping(false);
         setPhase("done");
-        setMsgs(p => [...p, {
-          r: "spec", name: "Ulug'bek",
-          text: "Assalomu alaykum! Mening ismim Ulug'bek. Murojaatingiz qabul qilindi, savolni o'rganib chiqyapman. Iltimos, biroz kuting.",
-        }]);
+        setMsgs(p => {
+          const reply = getSmartReply(p);
+          return [...p, { r: "spec", name: "Ulug'bek", text: reply }];
+        });
         scroll();
-      }, 2200);
+        resetCsatTimer();
+      }, 3000);
+    }, 1000);
+  };
+
+  const handleCsatRate = (rating) => {
+    setCsatDone(true);
+    setShowCsat(false);
+    setMsgs(p => [...p, { r: "user", text: `${rating} ${"⭐".repeat(rating)}` }]);
+    setBotTyping(true);
+    scroll();
+    setTimeout(() => {
+      setBotTyping(false);
+      setMsgs(p => [...p, { r: "bot", text: "Bahoyingiz uchun rahmat! Fikringizni qadrlaymiz va yaxshilanishga harakat qilamiz 💜" }]);
+      scroll();
     }, 1000);
   };
 
@@ -195,13 +288,7 @@ function ChatScreen({ onBack }) {
           if (m.r === "bot") return (
             <div key={i} className="msg-in msg-block">
               <div className="sender">Uzum Tezkor Bot 🤖</div>
-              <div className="msg-row">
-                <BotAvatar/>
-                <div className="msg-content">
-                  <div className="bubble-left">{m.text}</div>
-                  <div className="msg-time">Hozirgina</div>
-                </div>
-              </div>
+              <div className="msg-row"><BotAvatar/><div className="msg-content"><div className="bubble-left" style={{whiteSpace:"pre-line"}}>{m.text}</div><div className="msg-time">Hozirgina</div></div></div>
             </div>
           );
           if (m.r === "user") return (
@@ -212,32 +299,20 @@ function ChatScreen({ onBack }) {
           if (m.r === "spec") return (
             <div key={i} className="msg-in msg-block">
               <div className="sender">{m.name}</div>
-              <div className="msg-row">
-                <SpecAvatar/>
-                <div className="msg-content">
-                  <div className="bubble-left">{m.text}</div>
-                  <div className="msg-time">Hozirgina</div>
-                </div>
-              </div>
+              <div className="msg-row"><SpecAvatar/><div className="msg-content"><div className="bubble-left">{m.text}</div><div className="msg-time">Hozirgina</div></div></div>
             </div>
           );
           return null;
         })}
 
-        {phase === "bot_typing" && (
+        {botTyping && (
           <div className="msg-in"><div className="sender">Uzum Tezkor Bot 🤖</div><div className="msg-row"><BotAvatar/><Dots/></div></div>
         )}
 
         {phase === "buttons" && (
           <div className="msg-in">
             <div className="sender">Support Bot</div>
-            <div className="msg-row" style={{marginBottom:6}}>
-              <BotAvatar/>
-              <div className="msg-content">
-                <div className="bubble-left">Iltimos, murojaatingiz sababini tanlang, sizga yordam bera olaylik</div>
-                <div className="msg-time">Hozirgina</div>
-              </div>
-            </div>
+            <div className="msg-row" style={{marginBottom:6}}><BotAvatar/><div className="msg-content"><div className="bubble-left">Iltimos, murojaatingiz sababini tanlang, sizga yordam bera olaylik</div><div className="msg-time">Hozirgina</div></div></div>
             <div className="buttons-row">
               {["📦 Buyurtma holati","📍 Manzilni o'zgartirish","⚠️ Buyurtma bilan muammo"].map(l=>(
                 <button key={l} onClick={()=>pickButton(l)} className="action-btn">{l}</button>
@@ -247,31 +322,23 @@ function ChatScreen({ onBack }) {
         )}
 
         {phase === "call_spec" && (
-          <div className="msg-in">
-            <div className="buttons-row">
-              <button onClick={callSpec} className="action-btn">Mutaxassisni chaqirish</button>
-            </div>
-          </div>
+          <div className="msg-in"><div className="buttons-row"><button onClick={callSpec} className="action-btn">Mutaxassisni chaqirish</button></div></div>
         )}
 
-        {phase === "spec_typing" && (
+        {specTyping && (
           <div className="msg-in"><div className="sender">Ulug'bek</div><div className="msg-row"><SpecAvatar/><Dots/></div></div>
         )}
+
+        {showCsat && !csatDone && <CSATSurvey onRate={handleCsatRate}/>}
 
         <div ref={endRef} style={{height:1}}/>
       </div>
 
       <div className="input-bar">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.8" strokeLinecap="round" style={{flexShrink:0}}>
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-        </svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.8" strokeLinecap="round" style={{flexShrink:0}}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         <div className="input-wrap">
-          <input
-            type="text" placeholder="Xabar yozing"
-            value={input} onChange={e=>setInput(e.target.value)}
-            onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();handleSend();}}}
-            enterKeyHint="send"
-          />
+          <input type="text" placeholder="Xabar yozing" value={input} onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();handleSend();}}} enterKeyHint="send"/>
         </div>
         {input && (
           <div onClick={handleSend} style={{flexShrink:0,cursor:"pointer",padding:4}}>
@@ -283,37 +350,22 @@ function ChatScreen({ onBack }) {
   );
 }
 
+/* ── APP ── */
 export default function App() {
   const [screen, setScreen] = useState("profile");
   return (
     <>
       <style>{`
-        @keyframes dot {
-          0%,60%,100%{transform:translateY(0);opacity:.3}
-          30%{transform:translateY(-5px);opacity:1}
-        }
-        @keyframes msgIn {
-          from{opacity:0;transform:translateY(8px)}
-          to{opacity:1;transform:translateY(0)}
-        }
-        @keyframes btnPop {
-          from{opacity:0;transform:scale(.95) translateY(10px)}
-          to{opacity:1;transform:scale(1) translateY(0)}
-        }
+        @keyframes dot{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+        @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes btnPop{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html,body,#root{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:#f5f5f5}
         input::placeholder{color:#aaa}
 
-        .app-shell{
-          position:fixed;top:0;left:50%;transform:translateX(-50%);
-          width:100%;max-width:430px;height:100%;
-          display:flex;flex-direction:column;background:white;overflow:hidden;
-          font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
-        }
-        @media(min-width:431px){
-          .app-shell{top:20px;height:calc(100% - 40px);max-height:900px;border-radius:24px;box-shadow:0 0 80px rgba(0,0,0,.06)}
-        }
+        .app-shell{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:white;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif}
+        @media(min-width:431px){.app-shell{top:20px;height:calc(100% - 40px);max-height:900px;border-radius:24px;box-shadow:0 0 80px rgba(0,0,0,.06)}}
 
         .screen-col{flex:1;display:flex;flex-direction:column;overflow:hidden}
         .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -326,11 +378,9 @@ export default function App() {
 
         .chat-root{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:white;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif}
         @media(min-width:431px){.chat-root{top:20px;height:calc(100% - 40px);max-height:900px;border-radius:24px;box-shadow:0 0 80px rgba(0,0,0,.06)}}
-
         .chat-header{display:flex;align-items:center;padding:clamp(10px,3vw,14px) 16px;padding-top:max(env(safe-area-inset-top,12px),12px);border-bottom:1px solid #f0f0f0;background:white;flex-shrink:0;z-index:10}
         .close-btn{font-size:clamp(24px,7vw,30px);color:#222;cursor:pointer;line-height:1;font-weight:300}
         .header-title{flex:1;text-align:center;font-size:clamp(15px,4.5vw,18px);font-weight:600;margin-right:28px}
-
         .chat-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:clamp(12px,4vw,20px) clamp(10px,3vw,16px)}
 
         .msg-block{margin-bottom:clamp(10px,3vw,16px)}
@@ -352,6 +402,9 @@ export default function App() {
         .action-btn{padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:22px;border:1.5px solid ${PURPLE};background:white;color:${PURPLE};font-size:clamp(12px,3.5vw,14px);font-weight:500;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .15s}
         .action-btn:active{background:${PURPLE};color:#fff;transform:scale(.96)}
         @media(hover:hover){.action-btn:hover{background:${PURPLE};color:#fff}}
+
+        .csat-btn{width:100%;padding:12px;border-radius:12px;border:none;background:${PURPLE};color:white;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .15s}
+        .csat-btn:active{transform:scale(.97);opacity:.9}
 
         .input-bar{padding:clamp(6px,2vw,10px) clamp(10px,3vw,14px);display:flex;gap:clamp(8px,2.5vw,12px);align-items:center;border-top:1px solid #eee;background:white;flex-shrink:0;padding-bottom:max(env(safe-area-inset-bottom,8px),8px)}
         .input-wrap{flex:1;border:1px solid #e0e0e0;border-radius:24px;padding:0 clamp(12px,3vw,16px)}
