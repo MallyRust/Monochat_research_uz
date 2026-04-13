@@ -163,7 +163,7 @@ function ChatScreen({ onBack }) {
     csatTimer.current = setTimeout(() => {
       setShowCsat(true);
       scroll();
-    }, 15000); // 15 sec for demo (change to 180000 for 3 min)
+    }, 60000); // 15 sec for demo (change to 180000 for 3 min)
   }, [csatDone, scroll]);
 
   // First char typed -> bot typing -> buttons
